@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justify.content: 'space-between',
+    justifyContent: 'space-between',
     padding: METRICS.paddingMedium,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
