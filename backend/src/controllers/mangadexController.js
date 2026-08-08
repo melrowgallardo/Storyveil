@@ -197,9 +197,9 @@ const getMangaById = async (req, res, next) => {
 const getMangaChapters = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 100, offset = 0 } = req.query;
 
-    const response = await axios.get(`${MANGADEX_API_BASE}/manga/${id}/feed`, {
+    let response = await axios.get(`${MANGADEX_API_BASE}/manga/${id}/feed`, {
       params: {
         'translatedLanguage[]': ['en'],
         limit,
@@ -212,11 +212,30 @@ const getMangaChapters = async (req, res, next) => {
       },
     });
 
-    const chapters = (response.data.data || []).map((ch) => ({
+    let rawList = response.data.data || [];
+    let validChapters = rawList.filter((ch) => (ch.attributes?.pages || 0) > 0);
+
+    // If no English chapters with pages > 0, fallback to query without language restriction
+    if (validChapters.length === 0) {
+      const fallbackRes = await axios.get(`${MANGADEX_API_BASE}/manga/${id}/feed`, {
+        params: {
+          limit: 50,
+          'order[chapter]': 'asc',
+          'contentRating[]': ['safe', 'suggestive'],
+        },
+        headers: {
+          'User-Agent': 'Storyveil-App/1.0.0',
+        },
+      });
+      rawList = fallbackRes.data.data || [];
+      validChapters = rawList.filter((ch) => (ch.attributes?.pages || 0) > 0);
+    }
+
+    const chapters = validChapters.map((ch) => ({
       _id: `md-ch-${ch.id}`,
       mangadexChapterId: ch.id,
       chapterNumber: parseFloat(ch.attributes.chapter) || 1,
-      title: ch.attributes.title || `Chapter ${ch.attributes.chapter || 1}`,
+      title: ch.attributes.title ? `Ch. ${ch.attributes.chapter || 1} - ${ch.attributes.title}` : `Chapter ${ch.attributes.chapter || 1}`,
       pagesCount: ch.attributes.pages || 0,
       publishDate: ch.attributes.publishAt,
     }));
@@ -231,6 +250,7 @@ const getMangaChapters = async (req, res, next) => {
     res.status(500).json({ success: false, message: 'Failed to fetch MangaDex chapters' });
   }
 };
+
 
 /**
  * @desc    Get live image page URLs for a MangaDex chapter ID
