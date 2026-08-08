@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, METRICS } from '../styles/theme';
 
 export default function ReaderControls({
@@ -15,10 +16,12 @@ export default function ReaderControls({
   isBookmarked,
   onToggleBookmark,
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.overlayContainer} pointerEvents="box-none">
       {/* Top Reader Bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top + 6, METRICS.paddingMedium) }]}>
         <TouchableOpacity style={styles.iconBtn} onPress={onBack}>
           <Ionicons name="arrow-back" size={22} color={COLORS.text} />
         </TouchableOpacity>
@@ -37,7 +40,7 @@ export default function ReaderControls({
       </View>
 
       {/* Bottom Reader Bar */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom + 8, METRICS.paddingMedium) }]}>
         <View style={styles.pageIndicator}>
           <Text style={styles.pageText}>
             Page {currentPage} of {totalPages}

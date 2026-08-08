@@ -1,14 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, METRICS } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
 
 export default function Header({ title, onNotificationPress, onSearchPress, onQrPress }) {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top + 8, METRICS.paddingMedium + 6) }]}>
       <View style={styles.brandRow}>
         <View style={styles.logoBadge}>
           <Ionicons name="book" size={20} color={COLORS.primary} />
