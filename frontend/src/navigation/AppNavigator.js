@@ -7,6 +7,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ReaderScreen from '../screens/ReaderScreen';
 import LibraryScreen from '../screens/LibraryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import QRScannerScreen from '../screens/QRScannerScreen';
 import { COLORS } from '../styles/theme';
 
 const Stack = createNativeStackNavigator();
@@ -52,6 +53,8 @@ export default function AppNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="Reader" component={ReaderScreen} />
+      <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ animation: 'slide_from_bottom' }} />
     </Stack.Navigator>
   );
 }
+

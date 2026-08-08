@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, METRICS } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
 
-export default function Header({ title, onNotificationPress, onSearchPress }) {
+export default function Header({ title, onNotificationPress, onSearchPress, onQrPress }) {
   const { user } = useAuth();
 
   return (
@@ -17,6 +17,12 @@ export default function Header({ title, onNotificationPress, onSearchPress }) {
       </View>
 
       <View style={styles.actionRow}>
+        {onQrPress && (
+          <TouchableOpacity style={styles.iconBtn} onPress={onQrPress}>
+            <Ionicons name="qr-code-outline" size={20} color={COLORS.secondary} />
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity style={styles.iconBtn} onPress={onSearchPress}>
           <Ionicons name="search-outline" size={22} color={COLORS.text} />
         </TouchableOpacity>

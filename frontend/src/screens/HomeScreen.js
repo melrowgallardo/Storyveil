@@ -63,6 +63,7 @@ export default function HomeScreen({ navigation }) {
         title="STORYVEIL"
         onSearchPress={() => setShowSearch(!showSearch)}
         onNotificationPress={() => alert('No new notifications')}
+        onQrPress={() => navigation.navigate('QRScanner')}
       />
 
       {/* Expandable Search Input */}
