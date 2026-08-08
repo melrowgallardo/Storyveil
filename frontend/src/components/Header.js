@@ -37,12 +37,19 @@ export default function Header({ title, onNotificationPress, onSearchPress, onQr
         </TouchableOpacity>
 
         <TouchableOpacity onPress={onAvatarPress}>
-          <Image source={{ uri: avatarUri }} style={styles.avatar} />
+          {user?.avatar ? (
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+          ) : (
+            <View style={styles.botBadge}>
+              <Ionicons name="hardware-chip" size={18} color={COLORS.secondary} />
+            </View>
+          )}
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -108,4 +115,15 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.primary,
   },
+  botBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(6, 182, 212, 0.15)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(6, 182, 212, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
+

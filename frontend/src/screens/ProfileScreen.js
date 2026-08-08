@@ -33,8 +33,9 @@ export default function ProfileScreen({ navigation }) {
         ) : (
           <View style={styles.guestCard}>
             <View style={styles.guestIconBadge}>
-              <Ionicons name="person-circle-outline" size={42} color={COLORS.primary} />
+              <Ionicons name="hardware-chip" size={42} color={COLORS.secondary} />
             </View>
+
             <View style={styles.guestInfo}>
               <Text style={styles.guestTitle}>Guest Reader</Text>
               <Text style={styles.guestSubtitle}>Sign in to sync your bookmarks, favorites, and reading streak.</Text>
