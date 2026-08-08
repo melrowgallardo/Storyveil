@@ -54,7 +54,7 @@ export default function ReaderControls({
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.modeBtn} onPress={onToggleMode}>
-            <Ionicons name={readerMode === 'webtoon' ? 'scroll' : 'book'} size={16} color={COLORS.secondary} />
+            <Ionicons name={readerMode === 'webtoon' ? 'document-text' : 'book'} size={16} color={COLORS.secondary} />
             <Text style={styles.modeText}>{readerMode === 'webtoon' ? 'Webtoon Mode' : 'Paged Mode'}</Text>
           </TouchableOpacity>
 

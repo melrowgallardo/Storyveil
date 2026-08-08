@@ -1,10 +1,13 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
+const hostIp = debuggerHost ? debuggerHost.split(':')[0] : 'localhost';
+const API_BASE_URL = `http://${hostIp}:5000/api`;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 4000,
+  timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
   },
