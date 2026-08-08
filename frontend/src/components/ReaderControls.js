@@ -17,6 +17,8 @@ export default function ReaderControls({
   onToggleBookmark,
   isSpeaking,
   onToggleVoice,
+  isAutoTranslating,
+  onToggleTranslation,
 }) {
   const insets = useSafeAreaInsets();
 
@@ -66,20 +68,31 @@ export default function ReaderControls({
         <View style={styles.controlsRow}>
           <TouchableOpacity style={styles.navBtn} onPress={onPrevChapter}>
             <Ionicons name="chevron-back" size={18} color={COLORS.text} />
-            <Text style={styles.btnText}>Prev Ch</Text>
+            <Text style={styles.btnText}>Prev</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.translateBtn, isAutoTranslating && styles.translateActiveBtn]}
+            onPress={onToggleTranslation}
+          >
+            <Ionicons name="language" size={15} color={isAutoTranslating ? '#FFF' : COLORS.secondary} />
+            <Text style={[styles.translateText, isAutoTranslating && styles.translateActiveText]}>
+              {isAutoTranslating ? 'EN On' : 'Translate'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.modeBtn} onPress={onToggleMode}>
-            <Ionicons name={readerMode === 'webtoon' ? 'document-text' : 'book'} size={16} color={COLORS.secondary} />
-            <Text style={styles.modeText}>{readerMode === 'webtoon' ? 'Webtoon Mode' : 'Paged Mode'}</Text>
+            <Ionicons name={readerMode === 'webtoon' ? 'document-text' : 'book'} size={15} color={COLORS.secondary} />
+            <Text style={styles.modeText}>{readerMode === 'webtoon' ? 'Webtoon' : 'Paged'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.navBtn} onPress={onNextChapter}>
-            <Text style={styles.btnText}>Next Ch</Text>
+            <Text style={styles.btnText}>Next</Text>
             <Ionicons name="chevron-forward" size={18} color={COLORS.text} />
           </TouchableOpacity>
         </View>
       </View>
+
     </View>
   );
 }
@@ -164,12 +177,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  translateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(124, 58, 237, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primaryGlow,
+  },
+  translateActiveBtn: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  translateText: {
+    color: COLORS.secondary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  translateActiveText: {
+    color: '#FFF',
+  },
   modeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: 'rgba(6, 182, 212, 0.15)',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
@@ -177,7 +213,8 @@ const styles = StyleSheet.create({
   },
   modeText: {
     color: COLORS.secondary,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
 });
+

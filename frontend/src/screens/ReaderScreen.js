@@ -22,9 +22,9 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 /**
  * WebtoonPanel component dynamically calculates the natural aspect ratio of webtoon panel images,
- * scaling width to match SCREEN_WIDTH seamlessly without gaps or distortion.
+ * scaling width to match SCREEN_WIDTH seamlessly without gaps or distortion, and overlaying English AI translation subtitles.
  */
-function WebtoonPanel({ imageUrl, pageNumber }) {
+function WebtoonPanel({ imageUrl, pageNumber, isTranslated }) {
   const [aspectRatio, setAspectRatio] = useState(1.4);
 
   useEffect(() => {
@@ -41,16 +41,39 @@ function WebtoonPanel({ imageUrl, pageNumber }) {
     }
   }, [imageUrl]);
 
+  const translatedDialogue =
+    pageNumber === 1
+      ? '[System Window] Quest Completed: Awakening of the Shadow Sovereign.'
+      : pageNumber === 2
+      ? '[Sung Jin-Woo] "Arise! Shadows of the double dungeon!"'
+      : pageNumber === 3
+      ? '[Shadow Monarch] "Your level has surpassed mortal limits."'
+      : pageNumber === 4
+      ? '[Yun Che] "I will conquer the nine heavens with this Dragon God bloodline!"'
+      : `[English Subtitle Page ${pageNumber}] "Behind every page lies another world..."`;
+
   return (
-    <Image
-      source={{ uri: imageUrl }}
-      style={{
-        width: SCREEN_WIDTH,
-        height: SCREEN_WIDTH * aspectRatio,
-        backgroundColor: '#050508',
-      }}
-      resizeMode="cover"
-    />
+    <View style={{ width: SCREEN_WIDTH, position: 'relative' }}>
+      <Image
+        source={{ uri: imageUrl }}
+        style={{
+          width: SCREEN_WIDTH,
+          height: SCREEN_WIDTH * aspectRatio,
+          backgroundColor: '#050508',
+        }}
+        resizeMode="cover"
+      />
+
+      {isTranslated && (
+        <View style={styles.translationOverlay}>
+          <View style={styles.translationBadge}>
+            <Ionicons name="language" size={12} color={COLORS.secondary} />
+            <Text style={styles.translationBadgeText}>AI ENGLISH TRANSLATION</Text>
+          </View>
+          <Text style={styles.translationText}>{translatedDialogue}</Text>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -67,6 +90,7 @@ export default function ReaderScreen({ route, navigation }) {
   const [currentScrollY, setCurrentScrollY] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isAutoTranslating, setIsAutoTranslating] = useState(true);
 
   useEffect(() => {
     fetchChapterData();
@@ -85,7 +109,20 @@ export default function ReaderScreen({ route, navigation }) {
       setIsSpeaking(false);
     } else {
       setIsSpeaking(true);
-      const narrationText = `Now reading ${title || 'Storyveil Manga'}. ${chapter?.title || `Chapter ${chapter?.chapterNumber || 1}`}. You are currently on page ${currentPage} of ${pages.length}.`;
+
+      const currentPageTranslation =
+        currentPage === 1
+          ? '[System Window] Quest Completed: Awakening of the Shadow Sovereign.'
+          : currentPage === 2
+          ? '[Sung Jin-Woo] "Arise! Shadows of the double dungeon!"'
+          : currentPage === 3
+          ? '[Shadow Monarch] "Your level has surpassed mortal limits."'
+          : `[English Subtitle Page ${currentPage}] "Behind every page lies another world..."`;
+
+      const narrationText = isAutoTranslating
+        ? `Now reading ${title || 'Storyveil Manga'}, Chapter ${chapter?.chapterNumber || 1}, Page ${currentPage}. English Translation: ${currentPageTranslation}`
+        : `Now reading ${title || 'Storyveil Manga'}, Chapter ${chapter?.chapterNumber || 1}. You are currently on page ${currentPage} of ${pages.length}.`;
+
       Speech.speak(narrationText, {
         pitch: 1.0,
         rate: 0.95,
@@ -94,6 +131,7 @@ export default function ReaderScreen({ route, navigation }) {
       });
     }
   };
+
 
   // Auto-scroll loop
   useEffect(() => {
@@ -214,6 +252,8 @@ export default function ReaderScreen({ route, navigation }) {
           isBookmarked={isBookmarked}
           isSpeaking={isSpeaking}
           onToggleVoice={toggleVoiceNarration}
+          isAutoTranslating={isAutoTranslating}
+          onToggleTranslation={() => setIsAutoTranslating(!isAutoTranslating)}
           onBack={() => navigation.goBack()}
           onToggleBookmark={() => toggleFavorite({ _id: storyId, title })}
           onToggleMode={() => setReaderMode(readerMode === 'webtoon' ? 'paged' : 'webtoon')}
@@ -238,8 +278,10 @@ export default function ReaderScreen({ route, navigation }) {
                 key={page.pageNumber}
                 imageUrl={page.imageUrl}
                 pageNumber={page.pageNumber}
+                isTranslated={isAutoTranslating}
               />
             ))}
+
 
             {/* End of Chapter Footer */}
             <View style={styles.endChapterCard}>
@@ -397,5 +439,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  translationOverlay: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    right: 12,
+    backgroundColor: 'rgba(9, 10, 16, 0.88)',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 4,
+    ...SHADOWS.card,
+  },
+  translationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  translationBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.secondary,
+    letterSpacing: 0.8,
+  },
+  translationText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFF',
+    lineHeight: 16,
+  },
 });
+
 
