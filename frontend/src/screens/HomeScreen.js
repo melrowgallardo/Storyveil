@@ -15,11 +15,14 @@ import Header from '../components/Header';
 import FeaturedCarousel from '../components/FeaturedCarousel';
 import StoryCard from '../components/StoryCard';
 import { storyService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const GENRES = ['All', 'Action', 'Fantasy', 'Romance', 'Martial Arts', 'Sci-Fi', 'System'];
 
 export default function HomeScreen({ navigation }) {
+  const { isAuthenticated } = useAuth();
   const [stories, setStories] = useState([]);
+
   const [featured, setFeatured] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,6 +67,7 @@ export default function HomeScreen({ navigation }) {
         onSearchPress={() => setShowSearch(!showSearch)}
         onNotificationPress={() => alert('No new notifications')}
         onQrPress={() => navigation.navigate('QRScanner')}
+        onAvatarPress={() => navigation.navigate(isAuthenticated ? 'ProfileTab' : 'Auth')}
       />
 
       {/* Expandable Search Input */}

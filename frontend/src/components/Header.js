@@ -5,9 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, METRICS } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
 
-export default function Header({ title, onNotificationPress, onSearchPress, onQrPress }) {
+export default function Header({ title, onNotificationPress, onSearchPress, onQrPress, onAvatarPress }) {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300';
+  const avatarUri = user?.avatar || defaultAvatar;
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top + 8, METRICS.paddingMedium + 6) }]}>
@@ -34,7 +36,9 @@ export default function Header({ title, onNotificationPress, onSearchPress, onQr
           <View style={styles.dot} />
         </TouchableOpacity>
 
-        <Image source={{ uri: user.avatar }} style={styles.avatar} />
+        <TouchableOpacity onPress={onAvatarPress}>
+          <Image source={{ uri: avatarUri }} style={styles.avatar} />
+        </TouchableOpacity>
       </View>
     </View>
   );
