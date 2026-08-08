@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { COLORS, METRICS } from '../styles/theme';
 import ReaderControls from '../components/ReaderControls';
-import { storyService, MOCK_CHAPTER } from '../services/api';
+import { storyService, mangadexService, MOCK_CHAPTER } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -34,6 +34,26 @@ export default function ReaderScreen({ route, navigation }) {
   const fetchChapterData = async () => {
     try {
       setLoading(true);
+      if (storyId && String(storyId).startsWith('md-')) {
+        const cleanMdId = String(storyId).replace('md-', '');
+        const chapters = await mangadexService.getMangaChapters(cleanMdId);
+        if (chapters && chapters.length > 0) {
+          const firstChapter = chapters[0];
+          const pageUrls = await mangadexService.getChapterPages(firstChapter.mangadexChapterId);
+          if (pageUrls && pageUrls.length > 0) {
+            setChapter({
+              _id: firstChapter._id,
+              storyTitle: title || 'MangaDex Title',
+              chapterNumber: firstChapter.chapterNumber || 1,
+              title: firstChapter.title || `Chapter ${firstChapter.chapterNumber || 1}`,
+              pages: pageUrls,
+            });
+            return;
+          }
+        }
+      }
+
+      // Fallback for local database stories or standalone preview
       const data = await storyService.getChapter('chap-1');
       setChapter(data);
     } catch (err) {
@@ -42,6 +62,7 @@ export default function ReaderScreen({ route, navigation }) {
       setLoading(false);
     }
   };
+
 
   const handleScroll = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;

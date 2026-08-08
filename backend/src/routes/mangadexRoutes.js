@@ -4,11 +4,16 @@ const {
   searchManga,
   getMangaById,
   getMangaChapters,
+  getChapterPages,
 } = require('../controllers/mangadexController');
 
 // @route   GET /api/mangadex/search
 // @desc    Search live manga and webtoons on MangaDex
 router.get('/search', searchManga);
+
+// @route   GET /api/mangadex/chapter/:chapterId/pages
+// @desc    Get live image page URLs for a MangaDex chapter ID
+router.get('/chapter/:chapterId/pages', getChapterPages);
 
 // @route   GET /api/mangadex/:id
 // @desc    Get single manga details from MangaDex
@@ -19,3 +24,4 @@ router.get('/:id', getMangaById);
 router.get('/:id/chapters', getMangaChapters);
 
 module.exports = router;
+

@@ -232,8 +232,52 @@ const getMangaChapters = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get live image page URLs for a MangaDex chapter ID
+ * @route   GET /api/mangadex/chapter/:chapterId/pages
+ * @access  Public
+ */
+const getChapterPages = async (req, res, next) => {
+  try {
+    const { chapterId } = req.params;
+
+    const response = await axios.get(`${MANGADEX_API_BASE}/at-home/server/${chapterId}`, {
+      headers: {
+        'User-Agent': 'Storyveil-App/1.0.0',
+      },
+      timeout: 10000,
+    });
+
+    const { baseUrl, chapter } = response.data;
+    if (!chapter) {
+      return res.status(404).json({ success: false, message: 'Chapter pages unavailable' });
+    }
+
+    const hash = chapter.hash;
+    const pageFiles = chapter.data && chapter.data.length > 0 ? chapter.data : chapter.dataSaver || [];
+    const isSaver = !(chapter.data && chapter.data.length > 0);
+    const modePath = isSaver ? 'data-saver' : 'data';
+
+    const pageUrls = pageFiles.map(
+      (fileName) => `${baseUrl}/${modePath}/${hash}/${fileName}`
+    );
+
+    res.status(200).json({
+      success: true,
+      count: pageUrls.length,
+      chapterId,
+      pages: pageUrls,
+    });
+  } catch (error) {
+    console.error('[MangaDex Pages Error]:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch chapter pages from MangaDex' });
+  }
+};
+
 module.exports = {
   searchManga,
   getMangaById,
   getMangaChapters,
+  getChapterPages,
 };
+

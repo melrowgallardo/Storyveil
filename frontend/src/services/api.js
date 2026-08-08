@@ -237,6 +237,17 @@ export const mangadexService = {
       return [];
     }
   },
+
+  getChapterPages: async (chapterId) => {
+    try {
+      const res = await apiClient.get(`/mangadex/chapter/${chapterId}/pages`);
+      return res.data.pages;
+    } catch (err) {
+      console.warn('[MangaDex Pages Warning]:', err.message);
+      return [];
+    }
+  },
 };
+
 
 
