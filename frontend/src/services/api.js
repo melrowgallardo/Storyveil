@@ -173,3 +173,38 @@ export const storyService = {
     }
   },
 };
+
+export const authService = {
+  login: async (email, password) => {
+    try {
+      const res = await apiClient.post('/auth/login', { email, password });
+      return res.data.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Login failed';
+      throw new Error(errorMsg);
+    }
+  },
+
+  register: async (username, email, password) => {
+    try {
+      const res = await apiClient.post('/auth/register', { username, email, password });
+      return res.data.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Registration failed';
+      throw new Error(errorMsg);
+    }
+  },
+
+  getMe: async (token) => {
+    try {
+      const res = await apiClient.get('/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data.data;
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Session expired';
+      throw new Error(errorMsg);
+    }
+  },
+};
+

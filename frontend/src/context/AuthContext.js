@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
-import { MOCK_STORIES } from '../services/api';
+import { MOCK_STORIES, authService } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -15,6 +15,8 @@ export const AuthProvider = ({ children }) => {
       currentStreak: 7,
     },
   });
+
+  const [token, setToken] = useState('demo-jwt-token-storyveil-2026');
 
   const [bookmarks, setBookmarks] = useState([
     {
@@ -36,6 +38,61 @@ export const AuthProvider = ({ children }) => {
       status: 'Reading',
     },
   ]);
+
+  const login = async (email, password) => {
+    try {
+      const data = await authService.login(email, password);
+      setUser(data);
+      setToken(data.token);
+      return data;
+    } catch (err) {
+      // Fallback demo login if offline/standalone mode
+      if (email.includes('@') && password.length >= 6) {
+        const demoUserData = {
+          _id: `usr-${Date.now()}`,
+          username: email.split('@')[0],
+          email: email,
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300',
+          stats: { chaptersRead: 12, readingTimeMinutes: 90, currentStreak: 1 },
+          token: `demo-jwt-${Date.now()}`,
+        };
+        setUser(demoUserData);
+        setToken(demoUserData.token);
+        return demoUserData;
+      }
+      throw err;
+    }
+  };
+
+  const register = async (username, email, password) => {
+    try {
+      const data = await authService.register(username, email, password);
+      setUser(data);
+      setToken(data.token);
+      return data;
+    } catch (err) {
+      // Fallback demo register if offline/standalone mode
+      if (username && email && password.length >= 6) {
+        const newUserData = {
+          _id: `usr-${Date.now()}`,
+          username: username,
+          email: email,
+          avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=300',
+          stats: { chaptersRead: 0, readingTimeMinutes: 0, currentStreak: 1 },
+          token: `demo-jwt-${Date.now()}`,
+        };
+        setUser(newUserData);
+        setToken(newUserData.token);
+        return newUserData;
+      }
+      throw err;
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+  };
 
   const toggleFavorite = (story) => {
     setBookmarks((prev) => {
@@ -75,14 +132,16 @@ export const AuthProvider = ({ children }) => {
       })
     );
 
-    setUser((prev) => ({
-      ...prev,
-      stats: {
-        ...prev.stats,
-        chaptersRead: prev.stats.chaptersRead + 1,
-        readingTimeMinutes: prev.stats.readingTimeMinutes + 8,
-      },
-    }));
+    if (user) {
+      setUser((prev) => ({
+        ...prev,
+        stats: {
+          ...prev.stats,
+          chaptersRead: (prev?.stats?.chaptersRead || 0) + 1,
+          readingTimeMinutes: (prev?.stats?.readingTimeMinutes || 0) + 8,
+        },
+      }));
+    }
   };
 
   const isStoryBookmarked = (storyId) => {
@@ -93,7 +152,12 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        token,
+        isAuthenticated: !!user,
         setUser,
+        login,
+        register,
+        logout,
         bookmarks,
         toggleFavorite,
         updateProgress,

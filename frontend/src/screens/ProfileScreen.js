@@ -5,8 +5,8 @@ import { COLORS, METRICS, SHADOWS } from '../styles/theme';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 
-export default function ProfileScreen() {
-  const { user } = useAuth();
+export default function ProfileScreen({ navigation }) {
+  const { user, isAuthenticated, logout } = useAuth();
   const [downloadOverWifi, setDownloadOverWifi] = useState(true);
   const [readingNotifications, setReadingNotifications] = useState(true);
 
@@ -15,42 +15,62 @@ export default function ProfileScreen() {
       <Header title="MY ACCOUNT" />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* User Profile Card */}
-        <View style={styles.profileCard}>
-          <Image source={{ uri: user.avatar }} style={styles.avatar} />
-          <View style={styles.userInfo}>
-            <Text style={styles.username}>{user.username}</Text>
-            <Text style={styles.email}>{user.email}</Text>
-            <View style={styles.badgeRow}>
-              <View style={styles.proBadge}>
-                <Ionicons name="shield-checkmark" size={12} color={COLORS.secondary} />
-                <Text style={styles.proText}>VIP READER</Text>
+        {/* User Profile / Guest Card */}
+        {isAuthenticated && user ? (
+          <View style={styles.profileCard}>
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            <View style={styles.userInfo}>
+              <Text style={styles.username}>{user.username}</Text>
+              <Text style={styles.email}>{user.email}</Text>
+              <View style={styles.badgeRow}>
+                <View style={styles.proBadge}>
+                  <Ionicons name="shield-checkmark" size={12} color={COLORS.secondary} />
+                  <Text style={styles.proText}>VIP READER</Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        ) : (
+          <View style={styles.guestCard}>
+            <View style={styles.guestIconBadge}>
+              <Ionicons name="person-circle-outline" size={42} color={COLORS.primary} />
+            </View>
+            <View style={styles.guestInfo}>
+              <Text style={styles.guestTitle}>Guest Reader</Text>
+              <Text style={styles.guestSubtitle}>Sign in to sync your bookmarks, favorites, and reading streak.</Text>
+            </View>
+            <TouchableOpacity style={styles.signInBtn} onPress={() => navigation.navigate('Auth')}>
+              <Text style={styles.signInBtnText}>Sign In / Sign Up</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Reading Statistics Cards */}
-        <Text style={styles.sectionHeader}>Reading Activity</Text>
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Ionicons name="book-outline" size={22} color={COLORS.primary} />
-            <Text style={styles.statValue}>{user.stats.chaptersRead}</Text>
-            <Text style={styles.statLabel}>Chapters Read</Text>
-          </View>
+        {isAuthenticated && user && (
+          <>
+            <Text style={styles.sectionHeader}>Reading Activity</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Ionicons name="book-outline" size={22} color={COLORS.primary} />
+                <Text style={styles.statValue}>{user.stats?.chaptersRead || 0}</Text>
+                <Text style={styles.statLabel}>Chapters Read</Text>
+              </View>
 
-          <View style={styles.statCard}>
-            <Ionicons name="time-outline" size={22} color={COLORS.secondary} />
-            <Text style={styles.statValue}>{Math.round(user.stats.readingTimeMinutes / 60)} hrs</Text>
-            <Text style={styles.statLabel}>Time Spent</Text>
-          </View>
+              <View style={styles.statCard}>
+                <Ionicons name="time-outline" size={22} color={COLORS.secondary} />
+                <Text style={styles.statValue}>{Math.round((user.stats?.readingTimeMinutes || 0) / 60)} hrs</Text>
+                <Text style={styles.statLabel}>Time Spent</Text>
+              </View>
 
-          <View style={styles.statCard}>
-            <Ionicons name="flame-outline" size={22} color={COLORS.accent} />
-            <Text style={styles.statValue}>{user.stats.currentStreak} Days</Text>
-            <Text style={styles.statLabel}>Daily Streak</Text>
-          </View>
-        </View>
+              <View style={styles.statCard}>
+                <Ionicons name="flame-outline" size={22} color={COLORS.accent} />
+                <Text style={styles.statValue}>{user.stats?.currentStreak || 1} Days</Text>
+                <Text style={styles.statLabel}>Daily Streak</Text>
+              </View>
+            </View>
+          </>
+        )}
 
         {/* Settings Group */}
         <Text style={styles.sectionHeader}>App Preferences</Text>
@@ -88,11 +108,18 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={() => alert('Logged out safely.')}>
-          <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-          <Text style={styles.logoutText}>Sign Out of Storyveil</Text>
-        </TouchableOpacity>
+        {/* Sign Out / Sign In Action */}
+        {isAuthenticated ? (
+          <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
+            <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
+            <Text style={styles.logoutText}>Sign Out of Storyveil</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.authPromptBtn} onPress={() => navigation.navigate('Auth')}>
+            <Ionicons name="log-in-outline" size={20} color={COLORS.primary} />
+            <Text style={styles.authPromptText}>Sign In with Account</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -159,6 +186,50 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.secondary,
   },
+  guestCard: {
+    backgroundColor: COLORS.surface,
+    padding: METRICS.paddingMedium,
+    borderRadius: METRICS.borderRadius,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    gap: 10,
+    ...SHADOWS.card,
+  },
+  guestIconBadge: {
+    marginBottom: -4,
+  },
+  guestInfo: {
+    alignItems: 'center',
+  },
+  guestTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  guestSubtitle: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+    marginTop: 4,
+    paddingHorizontal: 10,
+  },
+  signInBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: METRICS.borderRadiusSm,
+    marginTop: 6,
+    ...SHADOWS.glow,
+  },
+  signInBtnText: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
   sectionHeader: {
     fontSize: 15,
     fontWeight: '700',
@@ -203,7 +274,7 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justify.content: 'space-between',
     padding: METRICS.paddingMedium,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -236,6 +307,23 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: COLORS.danger,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  authPromptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: METRICS.paddingLarge,
+    padding: METRICS.paddingMedium,
+    borderRadius: METRICS.borderRadiusSm,
+    backgroundColor: 'rgba(124, 58, 237, 0.15)',
+    borderWidth: 1,
+    borderColor: COLORS.primaryGlow,
+  },
+  authPromptText: {
+    color: COLORS.text,
     fontWeight: '700',
     fontSize: 14,
   },
