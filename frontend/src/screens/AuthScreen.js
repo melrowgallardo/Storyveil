@@ -93,9 +93,12 @@ export default function AuthScreen({ navigation }) {
             <Ionicons name="arrow-back" size={20} color={COLORS.text} />
           </TouchableOpacity>
 
-          <View style={styles.brandBadge}>
-            <Ionicons name="book" size={28} color={COLORS.primary} />
-          </View>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.authLogoImage}
+            resizeMode="contain"
+          />
+
           <Text style={styles.brandTitle}>STORYVEIL</Text>
           <Text style={styles.brandSubtitle}>
             {mode === 'login' ? 'Welcome back! Sign in to sync your library' : 'Join millions of manga & webtoon readers'}
@@ -267,17 +270,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandBadge: {
-    width: 56,
-    height: 56,
+  authLogoImage: {
+    width: 80,
+    height: 80,
     borderRadius: 16,
-    backgroundColor: 'rgba(124, 58, 237, 0.15)',
-    borderWidth: 1,
-    borderColor: COLORS.primaryGlow,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 10,
-    ...SHADOWS.glow,
   },
   brandTitle: {
     fontSize: 24,

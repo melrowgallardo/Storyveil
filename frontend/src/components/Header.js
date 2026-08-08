@@ -14,11 +14,14 @@ export default function Header({ title, onNotificationPress, onSearchPress, onQr
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top + 8, METRICS.paddingMedium + 6) }]}>
       <View style={styles.brandRow}>
-        <View style={styles.logoBadge}>
-          <Ionicons name="book" size={20} color={COLORS.primary} />
-        </View>
+        <Image
+          source={require('../../assets/logo.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <Text style={styles.brandTitle}>{title || 'STORYVEIL'}</Text>
       </View>
+
 
       <View style={styles.actionRow}>
         {onQrPress && (
@@ -67,15 +70,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  logoBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: 'rgba(124, 58, 237, 0.15)',
-    borderWidth: 1,
-    borderColor: COLORS.primaryGlow,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImage: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
   },
   brandTitle: {
     fontSize: 20,
