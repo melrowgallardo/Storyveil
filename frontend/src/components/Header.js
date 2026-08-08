@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, METRICS } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +21,6 @@ export default function Header({ title, onNotificationPress, onSearchPress, onQr
         />
         <Text style={styles.brandTitle}>{title || 'STORYVEIL'}</Text>
       </View>
-
 
       <View style={styles.actionRow}>
         {onQrPress && (
@@ -44,7 +43,7 @@ export default function Header({ title, onNotificationPress, onSearchPress, onQr
             <Image source={{ uri: user.avatar }} style={styles.avatar} />
           ) : (
             <View style={styles.botBadge}>
-              <Ionicons name="hardware-chip" size={18} color={COLORS.secondary} />
+              <FontAwesome5 name="robot" size={16} color={COLORS.secondary} />
             </View>
           )}
         </TouchableOpacity>
@@ -52,6 +51,7 @@ export default function Header({ title, onNotificationPress, onSearchPress, onQr
     </View>
   );
 }
+
 
 
 const styles = StyleSheet.create({

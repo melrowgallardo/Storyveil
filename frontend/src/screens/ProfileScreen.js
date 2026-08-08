@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Switch } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, METRICS, SHADOWS } from '../styles/theme';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
@@ -22,7 +22,7 @@ export default function ProfileScreen({ navigation }) {
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
             ) : (
               <View style={styles.botAvatarContainer}>
-                <Ionicons name="hardware-chip" size={30} color={COLORS.secondary} />
+                <FontAwesome5 name="robot" size={28} color={COLORS.secondary} />
               </View>
             )}
             <View style={styles.userInfo}>
@@ -40,8 +40,9 @@ export default function ProfileScreen({ navigation }) {
 
           <View style={styles.guestCard}>
             <View style={styles.guestIconBadge}>
-              <Ionicons name="hardware-chip" size={42} color={COLORS.secondary} />
+              <FontAwesome5 name="robot" size={38} color={COLORS.secondary} />
             </View>
+
 
             <View style={styles.guestInfo}>
               <Text style={styles.guestTitle}>Guest Reader</Text>
