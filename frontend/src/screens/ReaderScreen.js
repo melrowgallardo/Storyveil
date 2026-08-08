@@ -17,6 +17,40 @@ import { useAuth } from '../context/AuthContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+/**
+ * WebtoonPanel component dynamically calculates the natural aspect ratio of webtoon panel images,
+ * scaling width to match SCREEN_WIDTH seamlessly without gaps or distortion.
+ */
+function WebtoonPanel({ imageUrl, pageNumber }) {
+  const [aspectRatio, setAspectRatio] = useState(1.4);
+
+  useEffect(() => {
+    if (imageUrl) {
+      Image.getSize(
+        imageUrl,
+        (width, height) => {
+          if (width > 0 && height > 0) {
+            setAspectRatio(height / width);
+          }
+        },
+        (err) => console.warn(`[Page ${pageNumber}] Aspect ratio calculation skipped:`, err.message)
+      );
+    }
+  }, [imageUrl]);
+
+  return (
+    <Image
+      source={{ uri: imageUrl }}
+      style={{
+        width: SCREEN_WIDTH,
+        height: SCREEN_WIDTH * aspectRatio,
+        backgroundColor: '#050508',
+      }}
+      resizeMode="cover"
+    />
+  );
+}
+
 export default function ReaderScreen({ route, navigation }) {
   const { storyId, title } = route.params || { storyId: 'story-1', title: 'Shadow Monarch: Rebirth' };
   const { updateProgress, isStoryBookmarked, toggleFavorite } = useAuth();
@@ -53,7 +87,7 @@ export default function ReaderScreen({ route, navigation }) {
         }
       }
 
-      // Fallback for local database stories or standalone preview
+      // Fetch from local backend API
       const data = await storyService.getChapter('chap-1');
       setChapter(data);
     } catch (err) {
@@ -63,6 +97,18 @@ export default function ReaderScreen({ route, navigation }) {
     }
   };
 
+  const rawPages = chapter?.pages || MOCK_CHAPTER.pages;
+
+  // Normalize pages array into standard { pageNumber, imageUrl } objects
+  const pages = rawPages.map((item, index) => {
+    if (typeof item === 'string') {
+      return { pageNumber: index + 1, imageUrl: item };
+    }
+    return {
+      pageNumber: item.pageNumber || index + 1,
+      imageUrl: item.imageUrl || item.url || item,
+    };
+  });
 
   const handleScroll = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -71,7 +117,7 @@ export default function ReaderScreen({ route, navigation }) {
 
     if (contentHeight > 0) {
       const pageRatio = (offsetY + viewHeight / 2) / contentHeight;
-      const totalPages = chapter?.pages?.length || 5;
+      const totalPages = pages.length || 5;
       const calculatedPage = Math.max(1, Math.min(totalPages, Math.ceil(pageRatio * totalPages)));
       if (calculatedPage !== currentPage) {
         setCurrentPage(calculatedPage);
@@ -93,7 +139,6 @@ export default function ReaderScreen({ route, navigation }) {
     );
   }
 
-  const pages = chapter?.pages || MOCK_CHAPTER.pages;
   const isBookmarked = isStoryBookmarked(storyId);
 
   return (
@@ -116,7 +161,7 @@ export default function ReaderScreen({ route, navigation }) {
 
       <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={toggleControls}>
         {readerMode === 'webtoon' ? (
-          /* Continuous Vertical Webtoon Reader */
+          /* Continuous Seamless Vertical Webtoon Reader */
           <ScrollView
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -124,11 +169,10 @@ export default function ReaderScreen({ route, navigation }) {
             contentContainerStyle={styles.webtoonScroll}
           >
             {pages.map((page) => (
-              <Image
+              <WebtoonPanel
                 key={page.pageNumber}
-                source={{ uri: page.imageUrl }}
-                style={styles.webtoonImage}
-                resizeMode="contain"
+                imageUrl={page.imageUrl}
+                pageNumber={page.pageNumber}
               />
             ))}
 
@@ -137,7 +181,7 @@ export default function ReaderScreen({ route, navigation }) {
               <Text style={styles.endTitle}>You completed Chapter {chapter?.chapterNumber || 1}!</Text>
               <TouchableOpacity
                 style={styles.nextChapterBtn}
-                onPress={() => alert('Proceeding to Chapter 2...')}
+                onPress={() => alert('Proceeding to Next Chapter...')}
               >
                 <Text style={styles.nextChapterBtnText}>Read Next Chapter</Text>
               </TouchableOpacity>
@@ -188,11 +232,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 0,
   },
-  webtoonImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH * 1.5,
-    backgroundColor: '#111',
-  },
   pagedSlide: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
@@ -211,7 +250,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     gap: 12,
-    marginVertical: 20,
+    marginTop: 0,
+    paddingBottom: 40,
   },
   endTitle: {
     color: COLORS.text,
