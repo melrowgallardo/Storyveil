@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
   FlatList,
 } from 'react-native';
-import { COLORS, METRICS } from '../styles/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, METRICS, SHADOWS } from '../styles/theme';
 import ReaderControls from '../components/ReaderControls';
 import { storyService, mangadexService, MOCK_CHAPTER } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -55,15 +56,37 @@ export default function ReaderScreen({ route, navigation }) {
   const { storyId, title } = route.params || { storyId: 'story-1', title: 'Shadow Monarch: Rebirth' };
   const { updateProgress, isStoryBookmarked, toggleFavorite } = useAuth();
 
+  const scrollViewRef = useRef(null);
   const [chapter, setChapter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showControls, setShowControls] = useState(true);
   const [readerMode, setReaderMode] = useState('webtoon'); // 'webtoon' | 'paged'
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentScrollY, setCurrentScrollY] = useState(0);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
 
   useEffect(() => {
     fetchChapterData();
   }, [storyId]);
+
+  // Auto-scroll loop
+  useEffect(() => {
+    let timer = null;
+    if (isAutoScrolling) {
+      timer = setInterval(() => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({
+            y: currentScrollY + 4,
+            animated: false,
+          });
+          setCurrentScrollY((prev) => prev + 4);
+        }
+      }, 30);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isAutoScrolling, currentScrollY]);
 
   const fetchChapterData = async () => {
     try {
@@ -112,6 +135,8 @@ export default function ReaderScreen({ route, navigation }) {
 
   const handleScroll = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
+    setCurrentScrollY(offsetY);
+
     const contentHeight = event.nativeEvent.contentSize.height;
     const viewHeight = event.nativeEvent.layoutMeasurement.height;
 
@@ -123,6 +148,15 @@ export default function ReaderScreen({ route, navigation }) {
         setCurrentPage(calculatedPage);
         updateProgress(storyId, chapter?.chapterNumber || 1, calculatedPage);
       }
+    }
+  };
+
+  const handleScrollDownPress = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        y: currentScrollY + SCREEN_HEIGHT * 0.75,
+        animated: true,
+      });
     }
   };
 
@@ -163,6 +197,7 @@ export default function ReaderScreen({ route, navigation }) {
         {readerMode === 'webtoon' ? (
           /* Continuous Seamless Vertical Webtoon Reader */
           <ScrollView
+            ref={scrollViewRef}
             onScroll={handleScroll}
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
@@ -208,6 +243,25 @@ export default function ReaderScreen({ route, navigation }) {
           />
         )}
       </TouchableOpacity>
+
+      {/* Floating Scroll Down & Auto-Scroll Action Buttons */}
+      {readerMode === 'webtoon' && (
+        <View style={styles.floatingControls}>
+          <TouchableOpacity style={styles.floatingBtn} onPress={handleScrollDownPress} activeOpacity={0.8}>
+            <Ionicons name="chevron-down-circle" size={20} color="#FFF" />
+            <Text style={styles.floatingBtnText}>Scroll Down</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.floatingBtn, isAutoScrolling && styles.autoScrollActive]}
+            onPress={() => setIsAutoScrolling(!isAutoScrolling)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name={isAutoScrolling ? 'pause-circle' : 'play-circle'} size={20} color="#FFF" />
+            <Text style={styles.floatingBtnText}>{isAutoScrolling ? 'Pause' : 'Auto'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -216,6 +270,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    position: 'relative',
   },
   loadingContainer: {
     flex: 1,
@@ -251,7 +306,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     gap: 12,
     marginTop: 0,
-    paddingBottom: 40,
+    paddingBottom: 50,
   },
   endTitle: {
     color: COLORS.text,
@@ -268,5 +323,35 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '700',
     fontSize: 14,
+  },
+  floatingControls: {
+    position: 'absolute',
+    bottom: 30,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    zIndex: 100,
+  },
+  floatingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(15, 18, 30, 0.85)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    ...SHADOWS.glow,
+  },
+  autoScrollActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primaryGlow,
+  },
+  floatingBtnText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
