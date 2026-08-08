@@ -8,7 +8,8 @@ export const AuthProvider = ({ children }) => {
     _id: 'usr-101',
     username: 'Melrow Gallardo',
     email: 'melrow@storyveil.app',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300',
+    avatar: null,
+
     stats: {
       chaptersRead: 84,
       readingTimeMinutes: 460,
@@ -52,7 +53,7 @@ export const AuthProvider = ({ children }) => {
           _id: `usr-${Date.now()}`,
           username: email.split('@')[0],
           email: email,
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300',
+          avatar: null,
           stats: { chaptersRead: 12, readingTimeMinutes: 90, currentStreak: 1 },
           token: `demo-jwt-${Date.now()}`,
         };
@@ -77,7 +78,8 @@ export const AuthProvider = ({ children }) => {
           _id: `usr-${Date.now()}`,
           username: username,
           email: email,
-          avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=300',
+          avatar: null,
+
           stats: { chaptersRead: 0, readingTimeMinutes: 0, currentStreak: 1 },
           token: `demo-jwt-${Date.now()}`,
         };

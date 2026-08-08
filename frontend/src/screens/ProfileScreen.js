@@ -18,7 +18,13 @@ export default function ProfileScreen({ navigation }) {
         {/* User Profile / Guest Card */}
         {isAuthenticated && user ? (
           <View style={styles.profileCard}>
-            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            {user.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            ) : (
+              <View style={styles.botAvatarContainer}>
+                <Ionicons name="hardware-chip" size={30} color={COLORS.secondary} />
+              </View>
+            )}
             <View style={styles.userInfo}>
               <Text style={styles.username}>{user.username}</Text>
               <Text style={styles.email}>{user.email}</Text>
@@ -31,6 +37,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
         ) : (
+
           <View style={styles.guestCard}>
             <View style={styles.guestIconBadge}>
               <Ionicons name="hardware-chip" size={42} color={COLORS.secondary} />
@@ -154,6 +161,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.primary,
   },
+  botAvatarContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(6, 182, 212, 0.15)',
+    borderWidth: 2,
+    borderColor: 'rgba(6, 182, 212, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   userInfo: {
     flex: 1,
   },
