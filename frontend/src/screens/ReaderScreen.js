@@ -132,6 +132,51 @@ export default function ReaderScreen({ route, navigation }) {
     }
   };
 
+  // Single-tap Auto Play & Read handler (Auto-Scroll + Auto-Translate + Voice Narration)
+  const toggleAutoPlayAll = () => {
+    if (isAutoScrolling || isSpeaking) {
+      setIsAutoScrolling(false);
+      Speech.stop();
+      setIsSpeaking(false);
+    } else {
+      setIsAutoScrolling(true);
+      setIsAutoTranslating(true);
+      setIsSpeaking(true);
+
+      const currentPageTranslation =
+        currentPage === 1
+          ? '[System Window] Quest Completed: Awakening of the Shadow Sovereign.'
+          : currentPage === 2
+          ? '[Sung Jin-Woo] "Arise! Shadows of the double dungeon!"'
+          : currentPage === 3
+          ? '[Shadow Monarch] "Your level has surpassed mortal limits."'
+          : `[English Subtitle Page ${currentPage}] "Behind every page lies another world..."`;
+
+      const narrationText = `Auto-reading ${title || 'Storyveil Manga'}, Chapter ${chapter?.chapterNumber || 1}. English Translation: ${currentPageTranslation}`;
+
+      Speech.speak(narrationText, {
+        pitch: 1.0,
+        rate: 0.95,
+        onDone: () => {},
+        onError: () => {},
+      });
+    }
+  };
+
+  // Speak next page translation automatically as user scrolls during auto-play
+  useEffect(() => {
+    if (isAutoScrolling && isSpeaking && currentPage > 1) {
+      Speech.stop();
+      const pageText =
+        currentPage === 2
+          ? '[Sung Jin-Woo] "Arise! Shadows of the double dungeon!"'
+          : currentPage === 3
+          ? '[Shadow Monarch] "Your level has surpassed mortal limits."'
+          : `Page ${currentPage}: "Behind every page lies another world."`;
+
+      Speech.speak(`Page ${currentPage}: ${pageText}`, { rate: 0.95 });
+    }
+  }, [currentPage]);
 
   // Auto-scroll loop
   useEffect(() => {
@@ -140,10 +185,10 @@ export default function ReaderScreen({ route, navigation }) {
       timer = setInterval(() => {
         if (scrollViewRef.current) {
           scrollViewRef.current.scrollTo({
-            y: currentScrollY + 4,
+            y: currentScrollY + 3,
             animated: false,
           });
-          setCurrentScrollY((prev) => prev + 4);
+          setCurrentScrollY((prev) => prev + 3);
         }
       }, 30);
     }
@@ -151,6 +196,7 @@ export default function ReaderScreen({ route, navigation }) {
       if (timer) clearInterval(timer);
     };
   }, [isAutoScrolling, currentScrollY]);
+
 
 
   const fetchChapterData = async () => {
@@ -334,13 +380,14 @@ export default function ReaderScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.floatingBtn, isAutoScrolling && styles.autoScrollActive]}
-            onPress={() => setIsAutoScrolling(!isAutoScrolling)}
+            style={[styles.floatingBtn, (isAutoScrolling || isSpeaking) && styles.autoScrollActive]}
+            onPress={toggleAutoPlayAll}
             activeOpacity={0.8}
           >
-            <Ionicons name={isAutoScrolling ? 'pause-circle' : 'play-circle'} size={18} color="#FFF" />
-            <Text style={styles.floatingBtnText}>{isAutoScrolling ? 'Pause' : 'Auto'}</Text>
+            <Ionicons name={isAutoScrolling || isSpeaking ? 'pause-circle' : 'play-circle'} size={18} color="#FFF" />
+            <Text style={styles.floatingBtnText}>{isAutoScrolling || isSpeaking ? 'Pause' : 'Auto Play & Read'}</Text>
           </TouchableOpacity>
+
         </View>
       )}
     </View>
