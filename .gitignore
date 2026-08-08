@@ -20,9 +20,9 @@ web-build/
 *.orig.*
 .metro-health-check*
 
-# Operating System Files
-.DS_Store
-Thumbs.db
+# Temporary & scratch files
+*.log
+For run.txt
 
 # IDE Files
 .idea/
