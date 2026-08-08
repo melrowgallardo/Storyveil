@@ -14,7 +14,7 @@ import { COLORS, METRICS } from '../styles/theme';
 import Header from '../components/Header';
 import FeaturedCarousel from '../components/FeaturedCarousel';
 import StoryCard from '../components/StoryCard';
-import { storyService } from '../services/api';
+import { storyService, mangadexService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const GENRES = ['All', 'Action', 'Fantasy', 'Romance', 'Martial Arts', 'Sci-Fi', 'System'];
@@ -37,7 +37,13 @@ export default function HomeScreen({ navigation }) {
         storyService.getStories({ genre: selectedGenre, search: searchQuery }),
         storyService.getFeaturedStories(),
       ]);
-      setStories(storyList);
+
+      let mangadexResults = [];
+      if (searchQuery && searchQuery.trim().length >= 1) {
+        mangadexResults = await mangadexService.searchManga(searchQuery);
+      }
+
+      setStories([...storyList, ...mangadexResults]);
       setFeatured(featuredList);
     } catch (err) {
       console.error('[Home] Error fetching stories:', err);
@@ -50,6 +56,7 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     loadData();
   }, [selectedGenre, searchQuery]);
+
 
   const handleRefresh = () => {
     setRefreshing(true);
