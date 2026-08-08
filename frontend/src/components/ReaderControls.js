@@ -15,6 +15,8 @@ export default function ReaderControls({
   onBack,
   isBookmarked,
   onToggleBookmark,
+  isSpeaking,
+  onToggleVoice,
 }) {
   const insets = useSafeAreaInsets();
 
@@ -30,14 +32,28 @@ export default function ReaderControls({
           {chapterTitle || 'Chapter View'}
         </Text>
 
-        <TouchableOpacity style={styles.iconBtn} onPress={onToggleBookmark}>
-          <Ionicons
-            name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-            size={20}
-            color={isBookmarked ? COLORS.primary : COLORS.text}
-          />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={[styles.iconBtn, isSpeaking && styles.voiceActiveBtn]}
+            onPress={onToggleVoice}
+          >
+            <Ionicons
+              name={isSpeaking ? 'volume-high' : 'volume-medium-outline'}
+              size={20}
+              color={isSpeaking ? COLORS.accent : COLORS.text}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.iconBtn} onPress={onToggleBookmark}>
+            <Ionicons
+              name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+              size={20}
+              color={isBookmarked ? COLORS.primary : COLORS.text}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
+
 
       {/* Bottom Reader Bar */}
       <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom + 8, METRICS.paddingMedium) }]}>
@@ -100,8 +116,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: COLORS.cardBg,
     alignItems: 'center',
-    justify: 'center',
+    justifyContent: 'center',
   },
+  voiceActiveBtn: {
+    backgroundColor: 'rgba(236, 72, 153, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(236, 72, 153, 0.5)',
+  },
+
   bottomBar: {
     backgroundColor: 'rgba(9, 10, 16, 0.92)',
     paddingHorizontal: METRICS.paddingMedium,

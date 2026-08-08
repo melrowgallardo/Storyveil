@@ -11,12 +11,14 @@ import {
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
 import { COLORS, METRICS, SHADOWS } from '../styles/theme';
 import ReaderControls from '../components/ReaderControls';
 import { storyService, mangadexService, MOCK_CHAPTER } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 
 /**
  * WebtoonPanel component dynamically calculates the natural aspect ratio of webtoon panel images,
@@ -64,10 +66,34 @@ export default function ReaderScreen({ route, navigation }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentScrollY, setCurrentScrollY] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     fetchChapterData();
   }, [storyId]);
+
+  // Clean up voice speech on unmount
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
+  const toggleVoiceNarration = () => {
+    if (isSpeaking) {
+      Speech.stop();
+      setIsSpeaking(false);
+    } else {
+      setIsSpeaking(true);
+      const narrationText = `Now reading ${title || 'Storyveil Manga'}. ${chapter?.title || `Chapter ${chapter?.chapterNumber || 1}`}. You are currently on page ${currentPage} of ${pages.length}.`;
+      Speech.speak(narrationText, {
+        pitch: 1.0,
+        rate: 0.95,
+        onDone: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
+      });
+    }
+  };
 
   // Auto-scroll loop
   useEffect(() => {
@@ -87,6 +113,7 @@ export default function ReaderScreen({ route, navigation }) {
       if (timer) clearInterval(timer);
     };
   }, [isAutoScrolling, currentScrollY]);
+
 
   const fetchChapterData = async () => {
     try {
@@ -185,6 +212,8 @@ export default function ReaderScreen({ route, navigation }) {
           totalPages={pages.length}
           readerMode={readerMode}
           isBookmarked={isBookmarked}
+          isSpeaking={isSpeaking}
+          onToggleVoice={toggleVoiceNarration}
           onBack={() => navigation.goBack()}
           onToggleBookmark={() => toggleFavorite({ _id: storyId, title })}
           onToggleMode={() => setReaderMode(readerMode === 'webtoon' ? 'paged' : 'webtoon')}
@@ -192,6 +221,7 @@ export default function ReaderScreen({ route, navigation }) {
           onNextChapter={() => alert('Next chapter unlocked!')}
         />
       )}
+
 
       <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={toggleControls}>
         {readerMode === 'webtoon' ? (
@@ -244,11 +274,20 @@ export default function ReaderScreen({ route, navigation }) {
         )}
       </TouchableOpacity>
 
-      {/* Floating Scroll Down & Auto-Scroll Action Buttons */}
+      {/* Floating Scroll Down, Auto-Scroll, & Read Aloud Action Buttons */}
       {readerMode === 'webtoon' && (
         <View style={styles.floatingControls}>
+          <TouchableOpacity
+            style={[styles.floatingBtn, isSpeaking && styles.voiceActiveFloatingBtn]}
+            onPress={toggleVoiceNarration}
+            activeOpacity={0.8}
+          >
+            <Ionicons name={isSpeaking ? 'volume-high' : 'volume-medium'} size={18} color="#FFF" />
+            <Text style={styles.floatingBtnText}>{isSpeaking ? 'Pause' : 'Read Aloud'}</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.floatingBtn} onPress={handleScrollDownPress} activeOpacity={0.8}>
-            <Ionicons name="chevron-down-circle" size={20} color="#FFF" />
+            <Ionicons name="chevron-down-circle" size={18} color="#FFF" />
             <Text style={styles.floatingBtnText}>Scroll Down</Text>
           </TouchableOpacity>
 
@@ -257,7 +296,7 @@ export default function ReaderScreen({ route, navigation }) {
             onPress={() => setIsAutoScrolling(!isAutoScrolling)}
             activeOpacity={0.8}
           >
-            <Ionicons name={isAutoScrolling ? 'pause-circle' : 'play-circle'} size={20} color="#FFF" />
+            <Ionicons name={isAutoScrolling ? 'pause-circle' : 'play-circle'} size={18} color="#FFF" />
             <Text style={styles.floatingBtnText}>{isAutoScrolling ? 'Pause' : 'Auto'}</Text>
           </TouchableOpacity>
         </View>
@@ -349,9 +388,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primaryGlow,
   },
+  voiceActiveFloatingBtn: {
+    backgroundColor: COLORS.accent,
+    borderColor: 'rgba(236, 72, 153, 0.6)',
+  },
   floatingBtnText: {
     color: '#FFF',
     fontSize: 12,
     fontWeight: '700',
   },
 });
+
