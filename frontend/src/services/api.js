@@ -208,3 +208,35 @@ export const authService = {
   },
 };
 
+export const mangadexService = {
+  searchManga: async (title, limit = 10) => {
+    try {
+      const res = await apiClient.get('/mangadex/search', { params: { title, limit } });
+      return res.data.data;
+    } catch (err) {
+      console.warn('[MangaDex Service Warning]:', err.message);
+      return [];
+    }
+  },
+
+  getMangaById: async (id) => {
+    try {
+      const res = await apiClient.get(`/mangadex/${id}`);
+      return res.data.data;
+    } catch (err) {
+      console.warn('[MangaDex Detail Warning]:', err.message);
+      return null;
+    }
+  },
+
+  getMangaChapters: async (id) => {
+    try {
+      const res = await apiClient.get(`/mangadex/${id}/chapters`);
+      return res.data.data;
+    } catch (err) {
+      return [];
+    }
+  },
+};
+
+

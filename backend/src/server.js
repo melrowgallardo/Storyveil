@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const storyRoutes = require('./routes/storyRoutes');
 const chapterRoutes = require('./routes/chapterRoutes');
 const userRoutes = require('./routes/userRoutes');
+const mangadexRoutes = require('./routes/mangadexRoutes');
 
 const app = express();
 
@@ -38,6 +39,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/stories', storyRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/mangadex', mangadexRoutes);
+
 
 // 404 Route Handler
 app.use((req, res) => {

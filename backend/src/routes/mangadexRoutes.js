@@ -1,0 +1,21 @@
+const express = require('express');
+const router = express.Router();
+const {
+  searchManga,
+  getMangaById,
+  getMangaChapters,
+} = require('../controllers/mangadexController');
+
+// @route   GET /api/mangadex/search
+// @desc    Search live manga and webtoons on MangaDex
+router.get('/search', searchManga);
+
+// @route   GET /api/mangadex/:id
+// @desc    Get single manga details from MangaDex
+router.get('/:id', getMangaById);
+
+// @route   GET /api/mangadex/:id/chapters
+// @desc    Get chapters feed for a MangaDex title
+router.get('/:id/chapters', getMangaChapters);
+
+module.exports = router;
