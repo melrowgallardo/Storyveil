@@ -1,51 +1,142 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, METRICS } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
-export default function Header({ title, onNotificationPress, onSearchPress, onQrPress, onAvatarPress }) {
-  const { user } = useAuth();
+const resolveAvatarSource = (avatar) => {
+  if (!avatar || avatar === 'preset:robot' || avatar === 'robot' || typeof avatar === 'number') {
+    return require('../../assets/robot_avatar.png');
+  }
+  if (typeof avatar === 'string' && (avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('data:'))) {
+    return { uri: avatar };
+  }
+  return require('../../assets/robot_avatar.png');
+};
+
+export default function Header({ title, onNotificationPress, onSearchPress, onQrPress, onAvatarPress, navigation: propNavigation }) {
+  const { user, isAuthenticated } = useAuth();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300';
-  const avatarUri = user?.avatar || defaultAvatar;
+  const navFromHook = useNavigation();
+  const nav = propNavigation || navFromHook;
+
+  const avatarSource = resolveAvatarSource(user?.avatar);
+
+  const handleAvatarPress = () => {
+    if (onAvatarPress) {
+      onAvatarPress();
+    } else if (nav) {
+      if (!isAuthenticated) {
+        nav.navigate('Auth');
+      } else {
+        nav.navigate('MainTabs', { screen: 'ProfileTab' });
+      }
+    }
+  };
+
+  const handleSearchPress = () => {
+    if (onSearchPress) {
+      onSearchPress();
+    } else if (nav) {
+      try {
+        nav.navigate('Search');
+      } catch (e) {
+        nav.navigate('HomeTab');
+      }
+    }
+  };
+
+  const handleNotificationPress = () => {
+    if (onNotificationPress) {
+      onNotificationPress();
+    } else if (nav) {
+      try {
+        nav.navigate('Notifications');
+      } catch (e) {
+        alert('Notifications: You have no unread notifications.');
+      }
+    } else {
+      alert('Notifications: You have no unread notifications.');
+    }
+  };
+
+  const handleQrPress = () => {
+    if (onQrPress) {
+      onQrPress();
+    } else if (nav) {
+      try {
+        nav.navigate('QRScanner');
+      } catch (e) {
+        console.warn('[Header] QRScanner navigation failed:', e.message);
+      }
+    }
+  };
 
   return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top + 8, METRICS.paddingMedium + 6) }]}>
-      <View style={styles.brandRow}>
+    <View
+      pointerEvents="box-none"
+      style={[
+        styles.container,
+        {
+          paddingTop: Math.max(insets.top + 8, METRICS.paddingMedium + 6),
+          backgroundColor: colors.background,
+          borderBottomColor: colors.border,
+          zIndex: 999,
+          elevation: 10,
+        },
+      ]}
+    >
+      <View style={styles.brandRow} pointerEvents="auto">
         <Image
           source={require('../../assets/logo.png')}
           style={styles.logoImage}
           resizeMode="contain"
         />
-        <Text style={styles.brandTitle}>{title || 'STORYVEIL'}</Text>
+        <Text style={[styles.brandTitle, { color: colors.text }]}>{title || 'STORYVEIL'}</Text>
       </View>
 
-      <View style={styles.actionRow}>
-        {onQrPress && (
-          <TouchableOpacity style={styles.iconBtn} onPress={onQrPress}>
-            <Ionicons name="qr-code-outline" size={20} color={COLORS.secondary} />
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity style={styles.iconBtn} onPress={onSearchPress}>
-          <Ionicons name="search-outline" size={22} color={COLORS.text} />
+      <View style={styles.actionRow} pointerEvents="box-none">
+        <TouchableOpacity
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={[styles.iconBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}
+          onPress={handleQrPress}
+        >
+          <Ionicons name="qr-code-outline" size={20} color={colors.secondary} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconBtn} onPress={onNotificationPress}>
-          <Ionicons name="notifications-outline" size={22} color={COLORS.text} />
-          <View style={styles.dot} />
+        <TouchableOpacity
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={[styles.iconBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}
+          onPress={handleSearchPress}
+        >
+          <Ionicons name="search-outline" size={22} color={colors.text} />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={onAvatarPress}>
-          {user?.avatar ? (
-            <Image source={{ uri: user.avatar }} style={styles.avatar} />
-          ) : (
-            <View style={styles.botBadge}>
-              <FontAwesome5 name="robot" size={16} color={COLORS.secondary} />
-            </View>
-          )}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={[styles.iconBtn, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}
+          onPress={handleNotificationPress}
+        >
+          <Ionicons name="notifications-outline" size={22} color={colors.text} />
+          <View style={[styles.dot, { backgroundColor: colors.accent }]} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          onPress={handleAvatarPress}
+        >
+          <Image
+            source={avatarSource}
+            style={[styles.avatar, { borderColor: colors.primary }]}
+          />
         </TouchableOpacity>
       </View>
     </View>

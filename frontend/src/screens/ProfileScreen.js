@@ -4,51 +4,72 @@ import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, METRICS, SHADOWS } from '../styles/theme';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+
+export const resolveAvatarSource = (avatar) => {
+  if (!avatar || avatar === 'preset:robot' || avatar === 'robot' || typeof avatar === 'number') {
+    return require('../../assets/robot_avatar.png');
+  }
+  if (typeof avatar === 'string' && (avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('data:'))) {
+    return { uri: avatar };
+  }
+  return require('../../assets/robot_avatar.png');
+};
 
 export default function ProfileScreen({ navigation }) {
   const { user, isAuthenticated, logout } = useAuth();
+  const { themeKey, setTheme, colors, THEME_OPTIONS } = useTheme();
   const [downloadOverWifi, setDownloadOverWifi] = useState(true);
   const [readingNotifications, setReadingNotifications] = useState(true);
 
+  const currentAvatarSource = resolveAvatarSource(user?.avatar);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header title="MY ACCOUNT" />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* User Profile / Guest Card */}
         {isAuthenticated && user ? (
-          <View style={styles.profileCard}>
-            {user.avatar ? (
-              <Image source={{ uri: user.avatar }} style={styles.avatar} />
-            ) : (
-              <View style={styles.botAvatarContainer}>
-                <FontAwesome5 name="robot" size={28} color={COLORS.secondary} />
-              </View>
-            )}
+          <View style={[styles.profileCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.avatarContainer, { borderColor: colors.primary, backgroundColor: colors.surfaceLight }]}>
+              <Image
+                source={currentAvatarSource}
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+              <View style={[styles.statusBadge, { backgroundColor: colors.success, borderColor: colors.surface }]} />
+            </View>
+
             <View style={styles.userInfo}>
-              <Text style={styles.username}>{user.username}</Text>
-              <Text style={styles.email}>{user.email}</Text>
+              <Text style={[styles.username, { color: colors.text }]}>{user.username}</Text>
+              <Text style={[styles.email, { color: colors.textMuted }]}>{user.email}</Text>
               <View style={styles.badgeRow}>
                 <View style={styles.proBadge}>
-                  <Ionicons name="shield-checkmark" size={12} color={COLORS.secondary} />
-                  <Text style={styles.proText}>VIP READER</Text>
+                  <Ionicons name="shield-checkmark" size={12} color={colors.secondary} />
+                  <Text style={[styles.proText, { color: colors.secondary }]}>VIP READER</Text>
                 </View>
               </View>
             </View>
           </View>
         ) : (
-
-          <View style={styles.guestCard}>
-            <View style={styles.guestIconBadge}>
-              <FontAwesome5 name="robot" size={38} color={COLORS.secondary} />
+          <View style={[styles.guestCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.avatarContainerLarge, { borderColor: colors.primary, backgroundColor: colors.surfaceLight }]}>
+              <Image
+                source={currentAvatarSource}
+                style={styles.avatarImageLarge}
+                resizeMode="cover"
+              />
+              <View style={[styles.statusBadgeLarge, { backgroundColor: colors.secondary, borderColor: colors.surface }]} />
             </View>
-
 
             <View style={styles.guestInfo}>
-              <Text style={styles.guestTitle}>Guest Reader</Text>
-              <Text style={styles.guestSubtitle}>Sign in to sync your bookmarks, favorites, and reading streak.</Text>
+              <Text style={[styles.guestTitle, { color: colors.text }]}>Guest Reader</Text>
+              <Text style={[styles.guestSubtitle, { color: colors.textMuted }]}>
+                Sign in to sync your bookmarks, favorites, and reading streak.
+              </Text>
             </View>
-            <TouchableOpacity style={styles.signInBtn} onPress={() => navigation.navigate('Auth')}>
+            <TouchableOpacity style={[styles.signInBtn, { backgroundColor: colors.primary }]} onPress={() => navigation.navigate('Auth')}>
               <Text style={styles.signInBtnText}>Sign In / Sign Up</Text>
               <Ionicons name="arrow-forward" size={16} color="#FFF" />
             </TouchableOpacity>
@@ -58,75 +79,115 @@ export default function ProfileScreen({ navigation }) {
         {/* Reading Statistics Cards */}
         {isAuthenticated && user && (
           <>
-            <Text style={styles.sectionHeader}>Reading Activity</Text>
+            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Reading Activity</Text>
             <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <Ionicons name="book-outline" size={22} color={COLORS.primary} />
-                <Text style={styles.statValue}>{user.stats?.chaptersRead || 0}</Text>
-                <Text style={styles.statLabel}>Chapters Read</Text>
+              <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Ionicons name="book-outline" size={22} color={colors.primary} />
+                <Text style={[styles.statValue, { color: colors.text }]}>{user.stats?.chaptersRead || 0}</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Chapters Read</Text>
               </View>
 
-              <View style={styles.statCard}>
-                <Ionicons name="time-outline" size={22} color={COLORS.secondary} />
-                <Text style={styles.statValue}>{Math.round((user.stats?.readingTimeMinutes || 0) / 60)} hrs</Text>
-                <Text style={styles.statLabel}>Time Spent</Text>
+              <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Ionicons name="time-outline" size={22} color={colors.secondary} />
+                <Text style={[styles.statValue, { color: colors.text }]}>{Math.round((user.stats?.readingTimeMinutes || 0) / 60)} hrs</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Time Spent</Text>
               </View>
 
-              <View style={styles.statCard}>
-                <Ionicons name="flame-outline" size={22} color={COLORS.accent} />
-                <Text style={styles.statValue}>{user.stats?.currentStreak || 1} Days</Text>
-                <Text style={styles.statLabel}>Daily Streak</Text>
+              <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Ionicons name="flame-outline" size={22} color={colors.accent} />
+                <Text style={[styles.statValue, { color: colors.text }]}>{user.stats?.currentStreak || 1} Days</Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>Daily Streak</Text>
               </View>
             </View>
           </>
         )}
 
         {/* Settings Group */}
-        <Text style={styles.sectionHeader}>App Preferences</Text>
-        <View style={styles.settingsGroup}>
-          <View style={styles.settingItem}>
+        <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>App Preferences</Text>
+        <View style={[styles.settingsGroup, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          {/* Theme Selector Section */}
+          <View style={[styles.themeSelectorContainer, { borderBottomColor: colors.border }]}>
             <View style={styles.settingLeft}>
-              <Ionicons name="wifi-outline" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.settingTitle}>Download Only via Wi-Fi</Text>
+              <Ionicons name="color-palette-outline" size={20} color={colors.primary} />
+              <View>
+                <Text style={[styles.settingTitle, { color: colors.text }]}>Color Theme</Text>
+                <Text style={[styles.themeSubtext, { color: colors.textMuted }]}>
+                  Active: {THEME_OPTIONS.find((t) => t.key === themeKey)?.name || 'Dark Veil'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.themeGrid}>
+              {THEME_OPTIONS.map((item) => {
+                const isSelected = item.key === themeKey;
+                return (
+                  <TouchableOpacity
+                    key={item.key}
+                    style={[
+                      styles.themePill,
+                      {
+                        backgroundColor: item.background,
+                        borderColor: isSelected ? item.primary : colors.border,
+                        borderWidth: isSelected ? 2 : 1,
+                      },
+                    ]}
+                    onPress={() => setTheme(item.key)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.colorDot, { backgroundColor: item.primary }]} />
+                    <Text style={[styles.themePillText, { color: item.text }]}>{item.name}</Text>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={14} color={item.primary} style={{ marginLeft: 2 }} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
+            <View style={styles.settingLeft}>
+              <Ionicons name="wifi-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.settingTitle, { color: colors.text }]}>Download Only via Wi-Fi</Text>
             </View>
             <Switch
               value={downloadOverWifi}
               onValueChange={setDownloadOverWifi}
-              trackColor={{ false: COLORS.surfaceLight, true: COLORS.primary }}
+              trackColor={{ false: colors.surfaceLight, true: colors.primary }}
             />
           </View>
 
-          <View style={styles.settingItem}>
+          <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
             <View style={styles.settingLeft}>
-              <Ionicons name="notifications-outline" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.settingTitle}>Chapter Release Alerts</Text>
+              <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.settingTitle, { color: colors.text }]}>Chapter Release Alerts</Text>
             </View>
             <Switch
               value={readingNotifications}
               onValueChange={setReadingNotifications}
-              trackColor={{ false: COLORS.surfaceLight, true: COLORS.primary }}
+              trackColor={{ false: colors.surfaceLight, true: colors.primary }}
             />
           </View>
 
           <TouchableOpacity style={styles.settingItem} onPress={() => alert('Storage cache cleared (124 MB freed)')}>
             <View style={styles.settingLeft}>
-              <Ionicons name="trash-bin-outline" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.settingTitle}>Clear Offline Image Cache</Text>
+              <Ionicons name="trash-bin-outline" size={20} color={colors.textSecondary} />
+              <Text style={[styles.settingTitle, { color: colors.text }]}>Clear Offline Image Cache</Text>
             </View>
-            <Text style={styles.cacheSize}>124 MB</Text>
+            <Text style={[styles.cacheSize, { color: colors.textMuted }]}>124 MB</Text>
           </TouchableOpacity>
         </View>
 
         {/* Sign Out / Sign In Action */}
         {isAuthenticated ? (
           <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-            <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-            <Text style={styles.logoutText}>Sign Out of Storyveil</Text>
+            <Ionicons name="log-out-outline" size={20} color={colors.danger} />
+            <Text style={[styles.logoutText, { color: colors.danger }]}>Sign Out of Storyveil</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.authPromptBtn} onPress={() => navigation.navigate('Auth')}>
-            <Ionicons name="log-in-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.authPromptText}>Sign In with Account</Text>
+          <TouchableOpacity style={[styles.authPromptBtn, { borderColor: colors.primaryGlow }]} onPress={() => navigation.navigate('Auth')}>
+            <Ionicons name="log-in-outline" size={20} color={colors.primary} />
+            <Text style={[styles.authPromptText, { color: colors.text }]}>Sign In with Account</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -155,22 +216,56 @@ const styles = StyleSheet.create({
     gap: METRICS.paddingMedium,
     ...SHADOWS.card,
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-  },
-  botAvatarContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(6, 182, 212, 0.15)',
-    borderWidth: 2,
-    borderColor: 'rgba(6, 182, 212, 0.4)',
+  avatarContainer: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2.5,
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avatarImage: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+  },
+  statusBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+  },
+  avatarContainerLarge: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 3,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  avatarImageLarge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  statusBadgeLarge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2.5,
   },
 
   userInfo: {
@@ -299,6 +394,39 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  themeSelectorContainer: {
+    padding: METRICS.paddingMedium,
+    borderBottomWidth: 1,
+    gap: 12,
+  },
+  themeSubtext: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  themeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  themePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    minWidth: '47%',
+  },
+  colorDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  themePillText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -346,5 +474,10 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontWeight: '700',
     fontSize: 14,
+  },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });

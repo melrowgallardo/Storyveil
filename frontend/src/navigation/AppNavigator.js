@@ -10,25 +10,29 @@ import ProfileScreen from '../screens/ProfileScreen';
 import QRScannerScreen from '../screens/QRScannerScreen';
 import AuthScreen from '../screens/AuthScreen';
 import { COLORS } from '../styles/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0C0E17',
-          borderTopColor: 'rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
           height: 60,
           paddingBottom: 8,
           paddingTop: 6,
         },
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === 'HomeTab') {
@@ -44,7 +48,22 @@ function MainTabs() {
     >
       <Tab.Screen name="HomeTab" component={HomeScreen} options={{ tabBarLabel: 'Browse' }} />
       <Tab.Screen name="LibraryTab" component={LibraryScreen} options={{ tabBarLabel: 'Library' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileScreen}
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarStyle: {
+            display: 'flex',
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+            height: 60,
+            paddingBottom: 8,
+            paddingTop: 6,
+          },
+        }}
+      />
     </Tab.Navigator>
   );
 }

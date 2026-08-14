@@ -5,7 +5,12 @@ const {
   getMangaById,
   getMangaChapters,
   getChapterPages,
+  getTrendingManga,
 } = require('../controllers/mangadexController');
+
+// @route   GET /api/mangadex/trending
+// @desc    Get live trending webtoons & manga sorted by followedCount
+router.get('/trending', getTrendingManga);
 
 // @route   GET /api/mangadex/search
 // @desc    Search live manga and webtoons on MangaDex

@@ -4,11 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, METRICS, SHADOWS } from '../styles/theme';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+
+import { getCoverImageUrl } from '../components/StoryCard';
 
 const TABS = ['Reading', 'Favorites', 'Completed'];
 
 export default function LibraryScreen({ navigation }) {
   const { bookmarks, toggleFavorite } = useAuth();
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState('Reading');
 
   const filteredBookmarks = bookmarks.filter((item) => {
@@ -17,21 +21,43 @@ export default function LibraryScreen({ navigation }) {
     return true;
   });
 
+  const handleOpenReader = (item, story) => {
+    if (!story) return;
+    const rawId = story._id || story.id || story.mangaId || story.mangadexId || story.storyId;
+    const sourceStr = story.source || (String(rawId).startsWith('asura-') ? 'AsuraScans' : (String(rawId).startsWith('md-') ? 'MangaDex' : 'local'));
+    const chId = item.lastReadChapterId || item.lastReadChapterNumber || story.lastChapterId || 1;
+
+    navigation.navigate('Reader', {
+      id: rawId,
+      mangaId: rawId,
+      storyId: rawId,
+      source: sourceStr,
+      chapterId: chId,
+      chapterNumber: item.lastReadChapterNumber || 1,
+      title: story.title || 'Webtoon',
+      story: story,
+    });
+  };
+
   return (
-    <View style={styles.container}>
-      <Header title="MY LIBRARY" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Header title="MY LIBRARY" navigation={navigation} />
 
       {/* Tab Segment Selector */}
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         {TABS.map((tab) => {
           const active = activeTab === tab;
           return (
             <TouchableOpacity
               key={tab}
-              style={[styles.tabBtn, active && styles.tabBtnActive]}
+              style={[
+                styles.tabBtn,
+                { backgroundColor: 'transparent' },
+                active && { backgroundColor: colors.primary },
+              ]}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, active && styles.tabTextActive]}>{tab}</Text>
+              <Text style={[styles.tabText, { color: colors.textSecondary }, active && { color: '#FFF', fontWeight: '800' }]}>{tab}</Text>
             </TouchableOpacity>
           );
         })}
@@ -40,51 +66,67 @@ export default function LibraryScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {filteredBookmarks.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="library-outline" size={48} color={COLORS.textMuted} />
-            <Text style={styles.emptyTitle}>No Stories Saved Yet</Text>
-            <Text style={styles.emptySubtitle}>Explore titles on the Home screen and bookmark your favorites!</Text>
+            <Ionicons name="library-outline" size={48} color={colors.textMuted} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>No Stories Saved Yet</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>Explore titles on the Home screen and bookmark your favorites!</Text>
           </View>
         ) : (
           filteredBookmarks.map((item) => {
             const story = item.storyId;
+            const coverUrl = getCoverImageUrl(story);
             return (
-              <View key={item._id} style={styles.libraryCard}>
-                <Image source={{ uri: story.coverImage }} style={styles.coverImage} />
+              <TouchableOpacity
+                key={item._id || story?._id}
+                activeOpacity={0.88}
+                style={styles.libraryCard}
+                onPress={() => handleOpenReader(item, story)}
+              >
+                {coverUrl ? (
+                  <Image source={{ uri: coverUrl }} style={styles.coverImage} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.coverImage, { backgroundColor: COLORS.surfaceLight || '#222', alignItems: 'center', justifyContent: 'center' }]}>
+                    <Ionicons name="image-outline" size={24} color={COLORS.textMuted} />
+                  </View>
+                )}
 
                 <View style={styles.cardDetails}>
                   <View style={styles.cardHeader}>
                     <Text style={styles.storyTitle} numberOfLines={1}>
-                      {story.title}
+                      {story?.title || 'Webtoon'}
                     </Text>
-                    <TouchableOpacity onPress={() => toggleFavorite(story)}>
+                    <TouchableOpacity
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      onPress={() => toggleFavorite(story)}
+                    >
                       <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.authorText}>{story.author || 'Chugong'}</Text>
+                  <Text style={styles.authorText}>{story?.author || 'Author'}</Text>
 
                   {/* Reading Progress Indicator */}
                   <View style={styles.progressSection}>
                     <View style={styles.progressLabelRow}>
                       <Text style={styles.chapterProgress}>
-                        Chapter {item.lastReadChapterNumber} / {story.totalChapters || 100}
+                        Chapter {item.lastReadChapterNumber || 1} / {story?.totalChapters || 100}
                       </Text>
-                      <Text style={styles.percentText}>{item.progressPercentage}%</Text>
+                      <Text style={styles.percentText}>{item.progressPercentage || 0}%</Text>
                     </View>
                     <View style={styles.progressBarTrack}>
-                      <View style={[styles.progressBarFill, { width: `${item.progressPercentage}%` }]} />
+                      <View style={[styles.progressBarFill, { width: `${item.progressPercentage || 0}%` }]} />
                     </View>
                   </View>
 
                   <TouchableOpacity
                     style={styles.continueBtn}
-                    onPress={() => navigation.navigate('Reader', { storyId: story._id, title: story.title })}
+                    activeOpacity={0.8}
+                    onPress={() => handleOpenReader(item, story)}
                   >
                     <Ionicons name="play" size={14} color="#FFF" />
-                    <Text style={styles.continueBtnText}>Continue Chapter {item.lastReadChapterNumber}</Text>
+                    <Text style={styles.continueBtnText}>Continue Chapter {item.lastReadChapterNumber || 1}</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })
         )}

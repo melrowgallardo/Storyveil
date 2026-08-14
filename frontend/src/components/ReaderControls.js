@@ -61,7 +61,7 @@ export default function ReaderControls({
       <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom + 8, METRICS.paddingMedium) }]}>
         <View style={styles.pageIndicator}>
           <Text style={styles.pageText}>
-            Page {currentPage} of {totalPages}
+            {totalPages > 0 ? `Page ${currentPage} of ${totalPages}` : '0 Pages'}
           </Text>
         </View>
 

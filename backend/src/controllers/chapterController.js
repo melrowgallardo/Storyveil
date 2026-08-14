@@ -1,19 +1,33 @@
 const Chapter = require('../models/Chapter');
 const Story = require('../models/Story');
+const asuraService = require('../services/asuraService');
+const mongoose = require('mongoose');
 
-// @desc    Get chapter by ID or storyId + chapterNumber
+// @desc    Get chapter by Chapter ID or Story ID (queries MongoDB, MangaDex, or Asura fallback)
 // @route   GET /api/chapters/:id
 exports.getChapterById = async (req, res) => {
   try {
-    const chapter = await Chapter.findById(req.params.id).populate('storyId', 'title totalChapters coverImage');
-    if (!chapter) {
-      return res.status(404).json({ success: false, message: 'Chapter not found' });
+    const { id } = req.params;
+    let chapter;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      chapter = await Chapter.findById(id).populate('storyId', 'title totalChapters coverImage description author');
+
+      if (!chapter) {
+        chapter = await Chapter.findOne({ storyId: id }).populate('storyId', 'title totalChapters coverImage description author');
+      }
     }
 
-    chapter.views += 1;
-    await chapter.save();
+    if (chapter) {
+      chapter.views = (chapter.views || 0) + 1;
+      await chapter.save().catch(() => {});
+      return res.json({ success: true, data: chapter });
+    }
 
-    res.json({ success: true, data: chapter });
+    return res.status(404).json({
+      success: false,
+      message: `Chapter "${id}" not found in database or has no hosted pages.`,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

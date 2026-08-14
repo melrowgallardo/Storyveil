@@ -2,65 +2,76 @@ import React, { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { AuthProvider } from './src/context/AuthContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import AppNavigator from './src/navigation/AppNavigator';
-import { COLORS } from './src/styles/theme';
 
-const customDarkTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: COLORS.background,
-    card: COLORS.surface,
-    text: COLORS.text,
-    border: COLORS.border,
-    primary: COLORS.primary,
-  },
-};
+function AppContent() {
+  const { colors, isDark } = useTheme();
 
-export default function App() {
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const styleId = 'storyveil-web-styles';
-      if (!document.getElementById(styleId)) {
-        const style = document.createElement('style');
+      let style = document.getElementById(styleId);
+      if (!style) {
+        style = document.createElement('style');
         style.id = styleId;
-        style.textContent = `
-          html, body, #root, #root > div {
-            height: 100% !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            background-color: ${COLORS.background} !important;
-            overflow-x: hidden !important;
-          }
-        `;
         document.head.appendChild(style);
       }
+      style.textContent = `
+        html, body, #root, #root > div {
+          height: 100% !important;
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          background-color: ${colors.background} !important;
+          overflow-x: hidden !important;
+        }
+      `;
     }
-  }, []);
+  }, [colors.background]);
+
+  const baseNavigationTheme = isDark ? DarkTheme : DefaultTheme;
+  const navigationTheme = {
+    ...baseNavigationTheme,
+    colors: {
+      ...baseNavigationTheme.colors,
+      background: colors.background,
+      card: colors.surface,
+      text: colors.text,
+      border: colors.border,
+      primary: colors.primary,
+    },
+  };
 
   return (
-    <View style={styles.rootContainer}>
-      <SafeAreaProvider style={styles.rootContainer}>
-        <AuthProvider>
-          <NavigationContainer theme={customDarkTheme}>
-            <StatusBar style="light" backgroundColor={COLORS.background} />
-            <AppNavigator />
-          </NavigationContainer>
-        </AuthProvider>
-      </SafeAreaProvider>
+    <View style={[styles.rootContainer, { backgroundColor: colors.background }]}>
+      <NavigationContainer theme={navigationTheme}>
+        <StatusBar style={colors.statusBar} backgroundColor={colors.background} />
+        <AppNavigator />
+      </NavigationContainer>
     </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider style={styles.rootContainer}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
-    backgroundColor: COLORS.background,
     width: '100%',
     height: '100%',
   },

@@ -7,18 +7,35 @@ const generateToken = (id) => {
   });
 };
 
+const DEFAULT_AVATAR_POOL = [
+  'preset:robot',
+  'https://cdn-icons-png.flaticon.com/512/4712/4712094.png', // Cute Bot
+  'https://cdn-icons-png.flaticon.com/512/616/616408.png',   // Cute Cat
+  'https://cdn-icons-png.flaticon.com/512/616/616430.png',   // Cute Fox
+  'https://cdn-icons-png.flaticon.com/512/616/616412.png',   // Cute Panda
+  'https://cdn-icons-png.flaticon.com/512/616/616405.png',   // Cute Bear
+  'https://cdn-icons-png.flaticon.com/512/4712/4712109.png', // Helper Bot
+  'https://cdn-icons-png.flaticon.com/512/616/616429.png',   // Cute Shiba Inu
+];
+
+const getRandomDefaultAvatar = () => {
+  const randomIndex = Math.floor(Math.random() * DEFAULT_AVATAR_POOL.length);
+  return DEFAULT_AVATAR_POOL[randomIndex];
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, avatar: customAvatar } = req.body;
 
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
       return res.status(400).json({ success: false, message: 'User with this email or username already exists' });
     }
 
-    const user = await User.create({ username, email, password });
+    const assignedAvatar = customAvatar || getRandomDefaultAvatar();
+    const user = await User.create({ username, email, password, avatar: assignedAvatar });
 
     res.status(201).json({
       success: true,

@@ -69,3 +69,38 @@ exports.removeBookmark = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Update user profile (avatar, username)
+// @route   PUT /api/user/profile
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { avatar, username } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (avatar !== undefined) user.avatar = avatar;
+    if (username !== undefined && username.trim().length >= 3) user.username = username.trim();
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+        stats: user.stats,
+        preferences: user.preferences,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

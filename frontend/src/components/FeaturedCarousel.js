@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Dimensions
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, METRICS, SHADOWS } from '../styles/theme';
 
+import { getCoverImageUrl } from './StoryCard';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SLIDE_WIDTH = SCREEN_WIDTH - METRICS.paddingMedium * 2;
 
@@ -17,42 +19,54 @@ export default function FeaturedCarousel({ stories = [], onReadNow }) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {stories.map((story) => (
-          <View key={story._id} style={styles.slide}>
-            <Image source={{ uri: story.bannerImage || story.coverImage }} style={styles.bannerImage} />
+        {stories.map((story) => {
+          const imageUri = story.bannerImage || getCoverImageUrl(story);
+          return (
+            <TouchableOpacity
+              key={story._id || story.id || story.title}
+              activeOpacity={0.9}
+              style={styles.slide}
+              onPress={() => onReadNow && onReadNow(story)}
+            >
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.bannerImage} resizeMode="cover" />
+              ) : (
+                <View style={[styles.bannerImage, { backgroundColor: COLORS.surfaceLight || '#1A1C24' }]} />
+              )}
 
-            <View style={styles.overlayGradient}>
-              <View style={styles.badgeRow}>
-                <View style={styles.featuredBadge}>
-                  <Ionicons name="sparkles" size={12} color={COLORS.gold} />
-                  <Text style={styles.featuredText}>FEATURED WEBTOON</Text>
+              <View style={styles.overlayGradient} pointerEvents="none">
+                <View style={styles.badgeRow}>
+                  <View style={styles.featuredBadge}>
+                    <Ionicons name="sparkles" size={12} color={COLORS.gold} />
+                    <Text style={styles.featuredText}>FEATURED WEBTOON</Text>
+                  </View>
+                  <View style={styles.ratingBadge}>
+                    <Ionicons name="star" size={12} color={COLORS.gold} />
+                    <Text style={styles.ratingValue}>{story.rating || '4.9'}</Text>
+                  </View>
                 </View>
-                <View style={styles.ratingBadge}>
-                  <Ionicons name="star" size={12} color={COLORS.gold} />
-                  <Text style={styles.ratingValue}>{story.rating}</Text>
+
+                <Text style={styles.title} numberOfLines={1}>
+                  {story.title}
+                </Text>
+                <Text style={styles.description} numberOfLines={2}>
+                  {story.description}
+                </Text>
+
+                <View style={styles.actionRow}>
+                  <View style={styles.readButton}>
+                    <Ionicons name="play" size={16} color="#FFF" />
+                    <Text style={styles.readButtonText}>Read Chapter 1</Text>
+                  </View>
+
+                  <View style={styles.genrePill}>
+                    <Text style={styles.genrePillText}>{story.genres ? story.genres[0] : 'Action'}</Text>
+                  </View>
                 </View>
               </View>
-
-              <Text style={styles.title} numberOfLines={1}>
-                {story.title}
-              </Text>
-              <Text style={styles.description} numberOfLines={2}>
-                {story.description}
-              </Text>
-
-              <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.readButton} onPress={() => onReadNow && onReadNow(story)}>
-                  <Ionicons name="play" size={16} color="#FFF" />
-                  <Text style={styles.readButtonText}>Read Chapter 1</Text>
-                </TouchableOpacity>
-
-                <View style={styles.genrePill}>
-                  <Text style={styles.genrePillText}>{story.genres ? story.genres[0] : 'Action'}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );
